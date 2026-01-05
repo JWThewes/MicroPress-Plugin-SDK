@@ -1,0 +1,32 @@
+{
+  "name": "@micropress/plugin-sdk",
+  "version": "0.1.0",
+  "description": "SDK for building MicroPress plugins",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "watch": "tsc --watch"
+  },
+  "keywords": ["micropress", "plugin", "cms"],
+  "author": "Jan Thewes",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/JWThewes/MicroPress-plugins.git",
+    "directory": "sdk"
+  },
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "devDependencies": {
+    "typescript": "^5.3.0",
+    "@types/node": "^20.0.0"
+  },
+  "peerDependencies": {
+    "@aws-sdk/client-dynamodb": "^3.0.0",
+    "@aws-sdk/client-s3": "^3.0.0",
+    "@aws-sdk/util-dynamodb": "^3.0.0"
+  }
+}
