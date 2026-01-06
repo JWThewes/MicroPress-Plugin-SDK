@@ -1,0 +1,27 @@
+{
+  "id": "plugin-template",
+  "name": "Plugin Template",
+  "version": "1.0.0",
+  "description": "Template for MicroPress plugins",
+  "author": "Your Name",
+  "homepage": "https://github.com/your-org/plugin-template",
+  "capabilities": {
+    "editor": false,
+    "backend": false,
+    "renderer": false
+  },
+  "configSchema": {
+    "type": "object",
+    "properties": {},
+    "required": []
+  },
+  "endpoints": [],
+  "rendererHooks": {
+    "beforeConversion": false,
+    "afterConversion": false
+  },
+  "permissions": {
+    "dataAccess": false,
+    "assetAccess": false
+  }
+}
