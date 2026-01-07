@@ -15,7 +15,7 @@ async function checkUrl(url) {
   let hasErrors = false;
   
   for (const plugin of registry.plugins) {
-    const exists = await checkUrl(plugin.releaseUrl);
+    const exists = await checkUrl(`${plugin.releaseUrl}/releases/download/v${plugin.version}/plugin.zip`);
     if (!exists) {
       console.error(`❌ ${plugin.id}: Release URL not found`);
       hasErrors = true;

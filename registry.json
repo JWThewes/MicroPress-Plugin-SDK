@@ -1,15 +1,15 @@
 {
-  "version": "1.0.0-1",
-  "lastUpdated": "2026-01-06T12:36:24Z",
+  "version": "1.0.0",
+  "lastUpdated": "2026-01-07T00:00:00Z",
   "plugins": [
     {
-      "id": "micropress-sampple-plugin",
+      "id": "micropress-sample-plugin",
       "name": "Sample Image Gallery",
-      "version": "1.0.0",
       "description": "Add responsive image galleries with lightbox",
+      "latestVersion": "0.0.2",
       "author": "MicroPress",
-      "repository": "https://github.com/JWThewes/micropress-plugin-sample-gallery",
-      "downloadUrl": "https://github.com/JWThewes/micropress-plugin-sample-gallery/releases/download/v0.0.2/plugin.zip",
+      "githubRepo": "https://github.com/JWThewes/micropress-plugin-sample-gallery",
+      "minSystemVersion": "0.0.1",
       "capabilities": {
         "editor": true,
         "backend": true,

@@ -51,15 +51,15 @@ export interface PluginRegistryEntry {
   id: string;
   name: string;
   description: string;
-  latestVersion: string;
-  githubRepo: string;
-  releaseUrl: string;
-  minSystemVersion?: string;
+  version: string;
+  author: string;
+  githubUrl: string;
+  minSystemVersion: string;
+  capabilities: PluginRegistryEntryCapabilities;
 }
 
-export interface PluginData {
-  id: string;
-  data: any;
-  createdAt: string;
-  updatedAt: string;
+export interface PluginRegistryEntryCapabilities {
+  editor: boolean;
+  backend: boolean;
+  renderer: boolean;
 }
