@@ -1,0 +1,136 @@
+/**
+ * Editor Plugin Example
+ *
+ * This file creates a TipTap extension for the admin editor.
+ * It runs in the browser and adds custom editing capabilities.
+ */
+
+import { Node, mergeAttributes } from '@tiptap/core';
+
+/**
+ * Example: Custom block node for the editor
+ *
+ * This creates a new block type that users can insert into their content.
+ * The node will be serialized to JSON and stored with the page.
+ */
+export const MyPluginBlock = Node.create({
+  name: 'myPluginBlock',
+
+  // Block-level node (like paragraph, heading)
+  group: 'block',
+
+  // Can contain text content
+  content: 'inline*',
+
+  // Define custom attributes
+  addAttributes() {
+    return {
+      data: {
+        default: '',
+        parseHTML: element => element.getAttribute('data-plugin-data'),
+        renderHTML: attributes => ({
+          'data-plugin-data': attributes.data,
+        }),
+      },
+      variant: {
+        default: 'default',
+        parseHTML: element => element.getAttribute('data-variant'),
+        renderHTML: attributes => ({
+          'data-variant': attributes.variant,
+        }),
+      },
+    };
+  },
+
+  // How to parse from HTML
+  parseHTML() {
+    return [
+      {
+        tag: 'div[data-type="my-plugin-block"]',
+      },
+    ];
+  },
+
+  // How to render to HTML in editor
+  renderHTML({ HTMLAttributes }) {
+    return [
+      'div',
+      mergeAttributes(HTMLAttributes, {
+        'data-type': 'my-plugin-block',
+        class: 'my-plugin-block',
+      }),
+      0, // 0 means "render content here"
+    ];
+  },
+
+  // Add editor commands
+  addCommands() {
+    return {
+      insertPluginBlock:
+        (attrs = {}) =>
+        ({ commands }) => {
+          return commands.insertContent({
+            type: this.name,
+            attrs,
+            content: [{ type: 'text', text: 'Plugin content here...' }],
+          });
+        },
+      setPluginBlockData:
+        (data: string) =>
+        ({ commands }) => {
+          return commands.updateAttributes(this.name, { data });
+        },
+    };
+  },
+
+  // Add keyboard shortcuts
+  addKeyboardShortcuts() {
+    return {
+      // Mod = Cmd on Mac, Ctrl on Windows
+      'Mod-Shift-P': () => this.editor.commands.insertPluginBlock(),
+    };
+  },
+});
+
+/**
+ * Example: Inline mark (like bold, italic)
+ *
+ * This adds a custom inline style that can be applied to text.
+ */
+export const MyPluginMark = Node.create({
+  name: 'myPluginMark',
+
+  // Inline element
+  group: 'inline',
+  inline: true,
+
+  // Exclusive with other marks of same type
+  excludes: '_',
+
+  addAttributes() {
+    return {
+      color: {
+        default: '#ff0000',
+        parseHTML: element => element.style.backgroundColor,
+        renderHTML: attributes => ({
+          style: `background-color: ${attributes.color}`,
+        }),
+      },
+    };
+  },
+
+  parseHTML() {
+    return [{ tag: 'span[data-plugin-mark]' }];
+  },
+
+  renderHTML({ HTMLAttributes }) {
+    return ['span', mergeAttributes(HTMLAttributes, { 'data-plugin-mark': '' }), 0];
+  },
+});
+
+/**
+ * Default export: Array of extensions to register
+ *
+ * The editor will import this file and register all exported extensions.
+ */
+export default [MyPluginBlock, MyPluginMark];

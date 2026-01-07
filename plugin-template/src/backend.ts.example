@@ -1,0 +1,126 @@
+/**
+ * Backend Plugin Example
+ *
+ * This file handles server-side API endpoints for your plugin.
+ * Export named functions that match the handlers in manifest.json endpoints.
+ */
+
+import type { PluginSDK } from '@micropress/plugin-sdk';
+
+interface APIEvent {
+  httpMethod: string;
+  path: string;
+  pathParameters?: Record<string, string>;
+  queryStringParameters?: Record<string, string>;
+  body?: string;
+  headers: Record<string, string>;
+}
+
+interface APIResponse {
+  statusCode: number;
+  headers?: Record<string, string>;
+  body: string;
+}
+
+/**
+ * Example: List items endpoint
+ * Manifest entry: { "path": "/items", "method": "GET", "handler": "listItems" }
+ */
+export async function listItems(event: APIEvent, sdk: PluginSDK): Promise<APIResponse> {
+  try {
+    // Get plugin configuration
+    const config = await sdk.getData('config') || {};
+
+    // List all data keys with a prefix
+    const keys = await sdk.listData('item-');
+
+    // Fetch all items
+    const items = await Promise.all(
+      keys.map(key => sdk.getData(key))
+    );
+
+    sdk.log('info', `Listed ${items.length} items`);
+
+    return {
+      statusCode: 200,
+      body: JSON.stringify({ success: true, data: items })
+    };
+  } catch (error) {
+    sdk.log('error', 'Failed to list items', { error: String(error) });
+    return {
+      statusCode: 500,
+      body: JSON.stringify({ success: false, error: 'Internal server error' })
+    };
+  }
+}
+
+/**
+ * Example: Create item endpoint
+ * Manifest entry: { "path": "/items", "method": "POST", "handler": "createItem" }
+ */
+export async function createItem(event: APIEvent, sdk: PluginSDK): Promise<APIResponse> {
+  try {
+    const body = JSON.parse(event.body || '{}');
+    const { name, data } = body;
+
+    if (!name) {
+      return {
+        statusCode: 400,
+        body: JSON.stringify({ success: false, error: 'Name is required' })
+      };
+    }
+
+    const id = `item-${Date.now()}`;
+    const item = {
+      id,
+      name,
+      data,
+      createdAt: new Date().toISOString()
+    };
+
+    await sdk.putData(id, item);
+    sdk.log('info', `Created item ${id}`);
+
+    return {
+      statusCode: 201,
+      body: JSON.stringify({ success: true, data: item })
+    };
+  } catch (error) {
+    sdk.log('error', 'Failed to create item', { error: String(error) });
+    return {
+      statusCode: 500,
+      body: JSON.stringify({ success: false, error: 'Internal server error' })
+    };
+  }
+}
+
+/**
+ * Example: Delete item endpoint
+ * Manifest entry: { "path": "/items/{id}", "method": "DELETE", "handler": "deleteItem" }
+ */
+export async function deleteItem(event: APIEvent, sdk: PluginSDK): Promise<APIResponse> {
+  try {
+    const id = event.pathParameters?.id;
+
+    if (!id) {
+      return {
+        statusCode: 400,
+        body: JSON.stringify({ success: false, error: 'Item ID is required' })
+      };
+    }
+
+    await sdk.deleteData(id);
+    sdk.log('info', `Deleted item ${id}`);
+
+    return {
+      statusCode: 200,
+      body: JSON.stringify({ success: true })
+    };
+  } catch (error) {
+    sdk.log('error', 'Failed to delete item', { error: String(error) });
+    return {
+      statusCode: 500,
+      body: JSON.stringify({ success: false, error: 'Internal server error' })
+    };
+  }
+}

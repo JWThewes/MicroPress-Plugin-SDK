@@ -1,0 +1,121 @@
+/**
+ * Renderer Plugin Example
+ *
+ * This file handles content transformation during static site generation.
+ * The functions are called by the generator Lambda when publishing pages.
+ */
+
+import type { PluginSDK } from '@micropress/plugin-sdk';
+
+// TipTap JSON node structure
+interface TipTapNode {
+  type: string;
+  attrs?: Record<string, any>;
+  content?: TipTapNode[];
+  marks?: Array<{ type: string; attrs?: Record<string, any> }>;
+  text?: string;
+}
+
+/**
+ * Called BEFORE TipTap JSON is converted to HTML.
+ * Use this to transform or augment the content structure.
+ *
+ * @param json - The TipTap JSON content
+ * @param sdk - Plugin SDK for data access
+ * @returns Modified TipTap JSON
+ */
+export async function beforeConversion(json: TipTapNode, sdk: PluginSDK): Promise<TipTapNode> {
+  sdk.log('info', 'Running beforeConversion hook');
+
+  // Example: Find and transform custom plugin nodes
+  const transformNode = (node: TipTapNode): TipTapNode => {
+    // Look for custom plugin node types
+    if (node.type === 'myPluginBlock') {
+      // Transform into standard nodes that TipTap can render
+      return {
+        type: 'paragraph',
+        content: [
+          {
+            type: 'text',
+            text: `[Plugin Content: ${node.attrs?.data || 'empty'}]`
+          }
+        ]
+      };
+    }
+
+    // Recursively transform children
+    if (node.content) {
+      return {
+        ...node,
+        content: node.content.map(transformNode)
+      };
+    }
+
+    return node;
+  };
+
+  return transformNode(json);
+}
+
+/**
+ * Called AFTER TipTap JSON is converted to HTML.
+ * Use this for post-processing the HTML string.
+ *
+ * @param html - The generated HTML string
+ * @param sdk - Plugin SDK for data access
+ * @returns Modified HTML string
+ */
+export async function afterConversion(html: string, sdk: PluginSDK): Promise<string> {
+  sdk.log('info', 'Running afterConversion hook');
+
+  // Example: Replace placeholder tokens with dynamic content
+  const config = await sdk.getData('config') || {};
+
+  // Replace any [plugin:something] tokens
+  let result = html.replace(/\[plugin:(\w+)\]/g, (match, key) => {
+    return config[key] || match;
+  });
+
+  // Example: Wrap images in a lightbox container
+  result = result.replace(
+    /<img([^>]+)>/g,
+    '<figure class="plugin-image"><img$1><figcaption></figcaption></figure>'
+  );
+
+  return result;
+}
+
+/**
+ * Inject CSS and JavaScript assets into the page.
+ * Called once per page generation.
+ *
+ * @returns Object with optional css and js strings to inject
+ */
+export function injectAssets(): { css?: string; js?: string } {
+  return {
+    css: `
+      /* Plugin styles */
+      .plugin-image {
+        margin: 1rem 0;
+        text-align: center;
+      }
+      .plugin-image img {
+        max-width: 100%;
+        height: auto;
+        border-radius: 4px;
+      }
+      .plugin-image figcaption {
+        font-size: 0.875rem;
+        color: #666;
+        margin-top: 0.5rem;
+      }
+    `,
+    js: `
+      // Plugin JavaScript
+      document.addEventListener('DOMContentLoaded', function() {
+        // Initialize plugin functionality
+        console.log('Plugin loaded');
+      });
+    `
+  };
+}
