@@ -13,17 +13,18 @@ async function checkUrl(url) {
 
 (async () => {
   let hasErrors = false;
-  
+
   for (const plugin of registry.plugins) {
-    const exists = await checkUrl(`${plugin.releaseUrl}/releases/download/v${plugin.version}/plugin.zip`);
+    const releaseUrl = `${plugin.githubRepo}/releases/download/v${plugin.latestVersion}/plugin.zip`;
+    const exists = await checkUrl(releaseUrl);
     if (!exists) {
-      console.error(`❌ ${plugin.id}: Release URL not found`);
+      console.error(`❌ ${plugin.id}: Release not found at ${releaseUrl}`);
       hasErrors = true;
     } else {
       console.log(`✅ ${plugin.id}`);
     }
   }
-  
+
   if (hasErrors) process.exit(1);
   console.log('\nRegistry validation passed');
 })();
