@@ -10,7 +10,9 @@ declare global {
   interface Window {
     __MICROPRESS_PLUGINS__: {
       '@tiptap/core': typeof import('@tiptap/core');
+      react: typeof import('react');
     };
+    __MICROPRESS_PLUGIN_COMPONENTS__: Record<string, React.ComponentType<any>>;
   }
 }
 
@@ -74,3 +76,40 @@ export const tiptapCore = {
     return getTiptapCore();
   },
 };
+
+// React support for plugin components
+let _react: typeof import('react') | null = null;
+
+function getReact() {
+  if (!_react) {
+    _react = getGlobal<typeof import('react')>('react');
+  }
+  return _react;
+}
+
+export const React = new Proxy({} as typeof import('react'), {
+  get(_, prop) {
+    return (getReact() as any)[prop];
+  },
+});
+
+/**
+ * Register a React component for use in the plugin system
+ * @param name - Unique component name (e.g., 'archive:ImagePicker')
+ * @param component - React component
+ */
+export function registerComponent(name: string, component: React.ComponentType<any>): void {
+  if (typeof window === 'undefined') {
+    throw new Error('registerComponent is only available in browser environment');
+  }
+
+  if (!window.__MICROPRESS_PLUGIN_COMPONENTS__) {
+    window.__MICROPRESS_PLUGIN_COMPONENTS__ = {};
+  }
+
+  if (window.__MICROPRESS_PLUGIN_COMPONENTS__[name]) {
+    console.warn(`Component ${name} is already registered. Overwriting.`);
+  }
+
+  window.__MICROPRESS_PLUGIN_COMPONENTS__[name] = component;
+}
