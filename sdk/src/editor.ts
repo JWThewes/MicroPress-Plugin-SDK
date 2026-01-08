@@ -15,6 +15,8 @@ declare global {
     };
     __MICROPRESS_PLUGIN_COMPONENTS__: Record<string, React.ComponentType<any>>;
     __MICROPRESS_PLUGIN_API__: ((pluginId: string, path: string, options?: RequestInit) => Promise<Response>) | null;
+    __MICROPRESS_PLUGIN_API_READY__?: Promise<void>;
+    __MICROPRESS_PLUGIN_API_RESOLVE__?: () => void;
   }
 }
 
@@ -140,11 +142,6 @@ export function createPluginApi(pluginId: string): PluginApiClient {
     throw new Error('createPluginApi is only available in browser environment');
   }
 
-  const apiFunction = window.__MICROPRESS_PLUGIN_API__;
-  if (!apiFunction) {
-    throw new Error('Plugin API not initialized. Make sure you are running in MicroPress admin.');
-  }
-
   /**
    * Make an API call to this plugin's runtime endpoint
    * @param path - Path relative to /api/plugin-runtime/{pluginId} (e.g., '/albums')
@@ -152,6 +149,16 @@ export function createPluginApi(pluginId: string): PluginApiClient {
    * @returns Promise<Response>
    */
   return async function pluginApi(path: string, options?: RequestInit): Promise<Response> {
+    // Wait for the API to be ready (in case auth is still loading)
+    if (window.__MICROPRESS_PLUGIN_API_READY__) {
+      await window.__MICROPRESS_PLUGIN_API_READY__;
+    }
+
+    const apiFunction = window.__MICROPRESS_PLUGIN_API__;
+    if (!apiFunction) {
+      throw new Error('Plugin API not initialized. Make sure you are running in MicroPress admin.');
+    }
+
     // Ensure path starts with /
     const normalizedPath = path.startsWith('/') ? path : `/${path}`;
     return apiFunction(pluginId, normalizedPath, options);
