@@ -8,6 +8,7 @@ export interface PluginSDKConfig {
   tableName: string;
   assetBucket: string;
   region: string;
+  pluginConfig: Record<string, any>;
 }
 
 export class PluginSDK {
@@ -18,6 +19,7 @@ export class PluginSDK {
   private tableName: string;
   private assetBucket: string;
   private region: string;
+  readonly config: Record<string, any>;
   private requestCount: Map<string, { count: number; resetAt: number }> = new Map();
 
   constructor(config: PluginSDKConfig) {
@@ -25,6 +27,7 @@ export class PluginSDK {
     this.tableName = config.tableName;
     this.assetBucket = config.assetBucket;
     this.region = config.region;
+    this.config = config.pluginConfig;
     this.dynamodb = new DynamoDBClient({ region: config.region });
     this.s3 = new S3Client({ region: config.region });
     this.ssm = new SSMClient({ region: config.region });
