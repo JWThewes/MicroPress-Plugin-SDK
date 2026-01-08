@@ -6,7 +6,7 @@
       "id": "micropress-sample-plugin",
       "name": "Sample Image Gallery",
       "description": "Add responsive image galleries with lightbox",
-      "latestVersion": "0.0.12",
+      "latestVersion": "0.0.13",
       "author": "MicroPress",
       "githubRepo": "https://github.com/JWThewes/micropress-plugin-sample-gallery",
       "minSystemVersion": "0.0.1",
