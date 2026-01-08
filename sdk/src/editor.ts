@@ -11,8 +11,10 @@ declare global {
     __MICROPRESS_PLUGINS__: {
       '@tiptap/core': typeof import('@tiptap/core');
       react: typeof import('react');
+      'react/jsx-runtime': typeof import('react/jsx-runtime');
     };
     __MICROPRESS_PLUGIN_COMPONENTS__: Record<string, React.ComponentType<any>>;
+    __MICROPRESS_PLUGIN_API__: ((pluginId: string, path: string, options?: RequestInit) => Promise<Response>) | null;
   }
 }
 
@@ -112,4 +114,46 @@ export function registerComponent(name: string, component: React.ComponentType<a
   }
 
   window.__MICROPRESS_PLUGIN_COMPONENTS__[name] = component;
+}
+
+/**
+ * Plugin API client type
+ */
+export type PluginApiClient = (path: string, options?: RequestInit) => Promise<Response>;
+
+/**
+ * Create a plugin-specific API client
+ * This returns a function scoped to the plugin's runtime endpoints
+ * The access token is handled internally and never exposed to the plugin
+ * @param pluginId - The plugin ID
+ * @returns A function to make API calls to this plugin's runtime endpoints
+ *
+ * @example
+ * ```typescript
+ * const api = createPluginApi('my-plugin-id');
+ * const response = await api('/albums');
+ * const data = await response.json();
+ * ```
+ */
+export function createPluginApi(pluginId: string): PluginApiClient {
+  if (typeof window === 'undefined') {
+    throw new Error('createPluginApi is only available in browser environment');
+  }
+
+  const apiFunction = window.__MICROPRESS_PLUGIN_API__;
+  if (!apiFunction) {
+    throw new Error('Plugin API not initialized. Make sure you are running in MicroPress admin.');
+  }
+
+  /**
+   * Make an API call to this plugin's runtime endpoint
+   * @param path - Path relative to /api/plugin-runtime/{pluginId} (e.g., '/albums')
+   * @param options - Fetch options (method, body, headers, etc.)
+   * @returns Promise<Response>
+   */
+  return async function pluginApi(path: string, options?: RequestInit): Promise<Response> {
+    // Ensure path starts with /
+    const normalizedPath = path.startsWith('/') ? path : `/${path}`;
+    return apiFunction(pluginId, normalizedPath, options);
+  };
 }
